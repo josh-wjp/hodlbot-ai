@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import Footer from "./components/Footer";
 
 function App() {
     const [coin, setCoin] = useState("");
@@ -70,6 +71,7 @@ function App() {
                     </h2>
                 </div>
             )}
+            <Footer />
         </div>
     );
 }
