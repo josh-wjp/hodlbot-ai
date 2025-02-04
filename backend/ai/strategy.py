@@ -34,6 +34,9 @@ def get_historical_prices(coin_id: str, days: int = 14):
         df = pd.DataFrame(data["prices"], columns=["timestamp", "price"])
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
 
+        # ✅ Ensure prices are rounded to 6 decimal places
+        df["price"] = df["price"].round(6)
+
         # ✅ Handle empty data case
         if df.empty or df["price"].isnull().all():
             raise ValueError("⚠️ ERROR: Received empty or invalid data.")
@@ -53,7 +56,7 @@ def calculate_sma(df, window=5):
     if len(df) < window:
         print(f"⚠️ WARNING: Not enough data to calculate SMA-{window}")
         return df
-    df[f"SMA_{window}"] = df["price"].rolling(window=window).mean()
+    df[f"SMA_{window}"] = df["price"].rolling(window=window).mean().round(6)
     return df
 
 
@@ -62,7 +65,7 @@ def calculate_rsi(df, window=14):
     if len(df) < window:
         print(f"⚠️ WARNING: Not enough data to calculate RSI-{window}")
         return df
-    df["RSI"] = ta.momentum.RSIIndicator(df["price"], window=window).rsi()
+    df["RSI"] = ta.momentum.RSIIndicator(df["price"], window=window).rsi().round(6)
     return df
 
 
@@ -83,13 +86,13 @@ def make_trade_decision(coin_id: str):
 
     latest = df.iloc[-1]  # Most recent data
 
-    # Debug: Show latest price & RSI
-    print(f"🔍 Latest Price: {latest['price']:.2f}, RSI: {latest['RSI']:.2f}")
+    # Debug: Show latest price & RSI with 6 decimal places
+    print(f"🔍 Latest Price: {latest['price']:.6f}, RSI: {latest['RSI']:.6f}")
 
     # ✅ Improved trading strategy with buffer zones
     if latest["RSI"] < 30 and latest["SMA_5"] > latest["SMA_10"] * 1.02:
-        return {"decision": "BUY", "price": latest["price"], "RSI": latest["RSI"]}
+        return {"decision": "BUY", "price": round(latest["price"], 6), "RSI": round(latest["RSI"], 6)}
     elif latest["RSI"] > 70 and latest["SMA_5"] < latest["SMA_10"] * 0.98:
-        return {"decision": "SELL", "price": latest["price"], "RSI": latest["RSI"]}
+        return {"decision": "SELL", "price": round(latest["price"], 6), "RSI": round(latest["RSI"], 6)}
     else:
-        return {"decision": "HOLD", "price": latest["price"], "RSI": latest["RSI"]}
+        return {"decision": "HOLD", "price": round(latest["price"], 6), "RSI": round(latest["RSI"], 6)}
